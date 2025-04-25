@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Fixed the import from next/link to next/navigation
+import { useRouter } from "next/navigation";
+import { registerUser } from "../libapi/api"; // Fixed the import from next/link to next/navigation
 
 export default function RegisterPage() {
   const router = useRouter(); // Now this will work correctly
@@ -35,61 +36,83 @@ export default function RegisterPage() {
     }));
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const { email, fullName, phone, password, confirmPassword, role } = formData;
+
+  //   if (!email || !fullName || !phone || !password || !confirmPassword) {
+  //     return setMessage({ type: "error", text: "All fields are required." });
+  //   }
+
+  //   if (password !== confirmPassword) {
+  //     return setMessage({ type: "error", text: "Passwords do not match." });
+  //   }
+
+  //   setLoading(true);
+  //   setMessage(null);
+
+  //   try {
+  //     const res = await fetch("http://34.10.166.233/auth/register", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         email,
+  //         password,
+  //         role,
+  //         full_name: fullName,
+  //         phone,
+  //       }),
+  //     });
+
+  //     const data = await res.json();
+
+  //     if (!res.ok) {
+  //       // Extract error message from API response
+  //       const errorMessage = data.detail || data.message || "Registration failed.";
+  //       throw new Error(errorMessage);
+  //     }
+
+  //     // Store JWT token if provided
+  //     if (data.token) {
+  //       localStorage.setItem("token", data.token);
+  //     }
+
+  //     setMessage({ type: "success", text: "Account created successfully!" });
+  //     // Redirect to dashboard after successful registration
+  //     router.push('/dashboard');
+  //   } catch (err) {
+  //     console.error("Registration error:", err);
+  //     setMessage({ type: "error", text: err.message });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const { email, fullName, phone, password, confirmPassword, role } = formData;
-
-    if (!email || !fullName || !phone || !password || !confirmPassword) {
-      return setMessage({ type: "error", text: "All fields are required." });
-    }
-
-    if (password !== confirmPassword) {
-      return setMessage({ type: "error", text: "Passwords do not match." });
-    }
-
-    setLoading(true);
-    setMessage(null);
-
     try {
-      const res = await fetch("http://34.10.166.233/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          role,
-          full_name: fullName,
-          phone,
-        }),
+      const data = await registerUser({
+        email,
+        password,
+        role,
+        full_name: fullName,
+        phone,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        // Extract error message from API response
-        const errorMessage = data.detail || data.message || "Registration failed.";
-        throw new Error(errorMessage);
-      }
-
-      // Store JWT token if provided
+  
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
-
+  
       setMessage({ type: "success", text: "Account created successfully!" });
-      // Redirect to dashboard after successful registration
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err) {
-      console.error("Registration error:", err);
       setMessage({ type: "error", text: err.message });
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="h-screen bg-[#f5f8fe] grid place-items-center p-4 relative">
       {message && (
