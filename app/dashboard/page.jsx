@@ -7,19 +7,20 @@ import { Switch } from '@headlessui/react';
 
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    businessName: '',
-    email: '',
-    phone: '',
-    industry: '',
-    services: '',
-    products: '',
-    companySize: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    description: ''
-  });
+  // const [formData, setFormData] = useState({
+  //   businessName: '',
+  //   email: '',
+  //   phone: '',
+  //   industry: '',
+  //   services: '',
+  //   products: '',
+  //   companySize: '',
+  //   city: '',
+  //   state: '',
+  //   zipCode: '',
+  //   description: ''
+  // });
+  
 
   const [aiSettings, setAiSettings] = useState({
     tone: '',

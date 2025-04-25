@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -12,12 +13,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-
-// Dummy credentials
-const DUMMY_USER = {
-  email: "demo@referralhub.com",
-  password: "demo123"
-};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,13 +36,50 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if(formData.email === DUMMY_USER.email && formData.password === DUMMY_USER.password){
+    
+    try {
+      console.log("Attempting login with:", formData.email);
+      
+      const response = await fetch('http://34.10.166.233/auth/login', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      
+      });
+
+      console.log("Response status:", response.status);
+      
+      const data = await response.json();
+      console.log("API response:", data);
+      
+      if (!response.ok) {
+        // Extract error message from API response
+        const errorMessage = data.detail || data.message || "Login failed. Please check your credentials.";
+        setError(errorMessage);
+      }
+
+      // Store JWT token if provided
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        console.log("Token stored successfully");
+      } else if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+        console.log("Access token stored successfully");
+      }
+      
+      // Redirect to dashboard on successful login
       router.push("/dashboard");
-    } else {
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
       setIsLoading(false);
-      setError("Invalid credentials. Use demo@referralhub.com / demo123");
     }
   };
 
@@ -79,19 +111,24 @@ export default function LoginPage() {
           <Button
             variant="outline"
             className="w-full border-blue-500 text-blue-500 hover:bg-blue-50"
+            type="button"
           >
             <FcGoogle className="mr-2" />
             Continue with Google/Microsoft
           </Button>
 
           <div className="flex flex-col space-y-2">
-            <Label className="text-gray-700">Magic Link Login</Label>
+            <Label className="text-gray-700" htmlFor="magicLinkEmail">Magic Link Login</Label>
             <Input
+              id="magicLinkEmail"
               type="email"
               placeholder="Enter your email"
               className="border-gray-300 focus:ring-blue-300"
             />
-            <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">
+            <Button 
+              className="w-full bg-blue-500 text-white hover:bg-blue-600"
+              type="button"
+            >
               Send Magic Link
             </Button>
           </div>
@@ -100,25 +137,27 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="flex flex-col space-y-4">
             <div className="flex flex-col space-y-2">
-              <Label className="text-gray-700">Email</Label>
+              <Label className="text-gray-700" htmlFor="email">Email</Label>
               <Input
+                id="email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="demo@referralhub.com"
+                placeholder="your.email@example.com"
                 className="border-gray-300 focus:ring-blue-300"
                 required
               />
             </div>
             <div className="flex flex-col space-y-2">
-              <Label className="text-gray-700">Password</Label>
+              <Label className="text-gray-700" htmlFor="password">Password</Label>
               <Input
+                id="password"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder="demo123"
+                placeholder="••••••••"
                 className="border-gray-300 focus:ring-blue-300"
                 required
               />
@@ -138,7 +177,7 @@ export default function LoginPage() {
                   Remember Me
                 </Label>
               </div>
-              <Button variant="link" className="p-0 h-auto text-blue-500">
+              <Button variant="link" className="p-0 h-auto text-blue-500" type="button">
                 Forgot password?
               </Button>
             </div>
@@ -178,25 +217,25 @@ export default function LoginPage() {
           </form>
 
           <div className="flex justify-center gap-6 pt-2">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" type="button">
               <FcGoogle />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" type="button">
               <FaFacebook className="text-blue-600" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" type="button">
               <FaXTwitter />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" type="button">
               <FaLinkedin className="text-blue-700" />
             </Button>
           </div>
 
           <div className="text-center text-sm text-gray-600 pt-1">
             Don't have an account?{" "}
-            <Button variant="link" className="p-0 h-auto text-blue-500">
-              <Link href={"/register"}>Register now</Link>
-            </Button>
+            <Link href="/register" className="text-blue-500 hover:underline">
+              Register now
+            </Link>
           </div>
         </CardContent>
       </Card>

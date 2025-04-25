@@ -1,36 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSms, FaEnvelope } from 'react-icons/fa';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { BiTime } from 'react-icons/bi';
 import InProgress from '../components/Inprogress';
+import { useRouter } from 'next/navigation';
 
-// Move campaigns data outside component
-const campaigns = [
-  {
-    title: "Summer Referral Program",
-    date: "5/31/2024 - 8/30/2024",
-    referrals: 245,
-    conversion: "32%",
-    roi: "287%",
-    status: "Active",
-    note: "Increase reward by 10% to boost conversion rates during peak season",
-    isActive: true,
-  },
-  {
-    title: "Early Bird Special",
-    date: "8/20/2024 - 9/19/2024",
-    referrals: 300,
-    conversion: "40%",
-    roi: "320%",
-    status: "Inactive",
-    note: "Extend your campaign! Strong engagement suggests higher conversions with more time.",
-    isActive: false,
-  },
-];
+// Removed static campaigns; campaigns will be fetched dynamically
 
 // Separate CampaignCard component
 const CampaignCard = ({ campaign }) => {
@@ -147,7 +126,7 @@ const LeadSettings = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Referred Message<span className="text-red-500">*</span></label>
           <textarea
             className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            defaultValue="You’ve been invited! Sign up now and get 15% off your first order"
+            defaultValue="You've been invited! Sign up now and get 15% off your first order"
             rows={3}
           />
         </div>
@@ -195,6 +174,56 @@ const LeadSettings = () => {
 // Main Dashboard Component
 export default function CampaignDashboard() {
   const [activeTab, setActiveTab] = useState('campaigns');
+  const router = useRouter();
+  const [campaigns, setCampaigns] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchCampaigns() {
+      // Retrieve auth token
+      // const token = localStorage.getItem('token');
+      // if (!token) {
+      //   // Redirect to login if not authenticated
+      //   router.push('/login');
+      //   return;
+      // }
+      try {
+        // Fetch with Authorization header
+        const res = await fetch('http://34.10.166.233/campaigns/get-all-campaigns', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!res.ok) throw new Error(`Error fetching campaigns: ${res.status}`);
+        const data = await res.json();
+        setCampaigns(data);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || 'Failed to load campaigns');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchCampaigns();
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading campaigns...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500">Error loading campaigns: {error}</p>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {
